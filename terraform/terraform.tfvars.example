@@ -1,0 +1,12 @@
+# GCP Configuration
+project_id       = "reetik-project"
+region           = "europe-west1"
+credentials_file = "../credentials/terraform-sa-key.json"
+
+# Application Configuration
+app_name    = "vesper"
+environment = "prod"
+
+# Storage Configuration
+storage_location   = "EU"
+firestore_location = "eur3"
