@@ -1,0 +1,54 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
+
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+:root {
+  --color-amber-50: #FFFBEB;
+  --color-amber-400: #FCD34D;
+  --color-amber-600: #D97706;
+  --color-amber-900: #78350F;
+  --color-rose-400: #FDA4AF;
+  --color-rose-500: #FB7185;
+  --color-rose-600: #E11D48;
+  --color-teal-400: #5EEAD4;
+  --color-teal-500: #14B8A6;
+  --color-teal-600: #0D9488;
+  --color-cream-50: #FFFBEB;
+}
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+body {
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: linear-gradient(to bottom right, var(--color-amber-50), var(--color-cream-50), var(--color-teal-400));
+  min-height: 100vh;
+}
+#root {
+  min-height: 100vh;
+}
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-amber-50);
+}
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, var(--color-amber-400), var(--color-rose-400));
+  border-radius: 5px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(to bottom, var(--color-amber-600), var(--color-rose-600));
+}
