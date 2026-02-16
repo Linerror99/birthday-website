@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  # Backend API - Production
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: vesper-backend-prod
+    ports:
+      - "8080:3000"
+    volumes:
+      - ./credentials:/app/credentials:ro
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - GCP_PROJECT_ID=reetik-project
+      - FIREBASE_DATABASE_ID=vesper-db
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/credentials/backend-sa-key.json
+      - STORAGE_BUCKET_VIDEOS=vesper-birthday-videos-reetik-project
+      - STORAGE_BUCKET_ASSETS=vesper-birthday-assets-reetik-project
+      - ADMIN_SECRET=${ADMIN_SECRET}
+      - PIN_CODE=${PIN_CODE}
+      - CORS_ORIGIN=${CORS_ORIGIN:-*}
+    networks:
+      - vesper-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Frontend - Production with Nginx
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: vesper-frontend-prod
+    ports:
+      - "80:80"
+    environment:
+      - VITE_API_URL=${API_URL:-http://localhost:8080/api}
+    networks:
+      - vesper-network
+    restart: unless-stopped
+    depends_on:
+      - backend
+
+networks:
+  vesper-network:
+    driver: bridge

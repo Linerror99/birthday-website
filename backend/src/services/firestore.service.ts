@@ -1,4 +1,4 @@
-import { getFirestore } from '../config/firebase';
+import { getFirestore, admin } from '../config/firebase';
 import { Wish, WishFilter, WishResponse } from '../types/wish.types';
 import { logger } from '../utils/logger';
 
@@ -9,13 +9,35 @@ export class FirestoreService {
   private wishesRef = this.db.collection(WISHES_COLLECTION);
 
   /**
+   * Convert Firestore document to Wish object
+   */
+  private documentToWish(doc: FirebaseFirestore.DocumentSnapshot): Wish {
+    const data = doc.data();
+    if (!data) {
+      throw new Error('Document data is undefined');
+    }
+
+    return {
+      id: doc.id,
+      name: data.name,
+      type: data.type,
+      message: data.message,
+      videoStoragePath: data.videoStoragePath,
+      videoUrl: data.videoUrl,
+      approved: data.approved,
+      rejected: data.rejected,
+      createdAt: data.createdAt?.toDate() || new Date(),
+    };
+  }
+
+  /**
    * Create a new wish
    */
-  async createWish(wishData: Omit<Wish, 'id'>): Promise<string> {
+  async createWish(wishData: Omit<Wish, 'id' | 'createdAt'>): Promise<string> {
     try {
       const docRef = await this.wishesRef.add({
         ...wishData,
-        createdAt: new Date(),
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
       });
       logger.info(`Wish created with ID: ${docRef.id}`);
       return docRef.id;
@@ -34,10 +56,7 @@ export class FirestoreService {
       if (!doc.exists) {
         return null;
       }
-      return {
-        id: doc.id,
-        ...(doc.data() as Omit<Wish, 'id'>),
-      };
+      return this.documentToWish(doc);
     } catch (error) {
       logger.error(`Error getting wish ${wishId}:`, error);
       throw new Error('Failed to get wish');
@@ -62,10 +81,7 @@ export class FirestoreService {
       const wishes: Wish[] = [];
 
       snapshot.forEach((doc) => {
-        wishes.push({
-          id: doc.id,
-          ...(doc.data() as Omit<Wish, 'id'>),
-        });
+        wishes.push(this.documentToWish(doc));
       });
 
       return wishes;

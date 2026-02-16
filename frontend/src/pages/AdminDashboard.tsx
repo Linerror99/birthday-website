@@ -19,14 +19,47 @@ import {
 import { Wish } from '../data/wishes';
 type TabType = 'pending' | 'approved' | 'rejected';
 export function AdminDashboard() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [adminSecret, setAdminSecret] = useState('');
+  const [authError, setAuthError] = useState('');
   const [wishes, setWishes] = useState<Wish[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<TabType>('pending');
   const [selectedVideo, setSelectedVideo] = useState<Wish | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+
+  // Check if admin secret exists in localStorage
   useEffect(() => {
-    loadWishes();
+    const storedSecret = localStorage.getItem('adminSecret');
+    if (storedSecret) {
+      setIsAuthenticated(true);
+      loadWishes();
+    } else {
+      setLoading(false);
+    }
   }, []);
+
+  const handleAdminLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!adminSecret.trim()) {
+      setAuthError('Veuillez entrer le code admin');
+      return;
+    }
+    
+    // Store the secret in localStorage
+    localStorage.setItem('adminSecret', adminSecret);
+    setIsAuthenticated(true);
+    setAuthError('');
+    setLoading(true);
+    loadWishes();
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('adminSecret');
+    setIsAuthenticated(false);
+    setAdminSecret('');
+    setWishes([]);
+  };
   const loadWishes = async () => {
     try {
       const allWishes = await getAllWishes();
@@ -104,6 +137,73 @@ export function AdminDashboard() {
     color: 'red'
   }];
 
+  // Show login form if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-blue-900 flex items-center justify-center p-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md"
+        >
+          <div className="text-center mb-8">
+            <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <LockIcon className="w-8 h-8 text-purple-600" />
+            </div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+              Admin Dashboard
+            </h1>
+            <p className="text-gray-600">
+              Entrez le code admin pour accéder au dashboard
+            </p>
+          </div>
+
+          <form onSubmit={handleAdminLogin} className="space-y-4">
+            <div>
+              <label htmlFor="adminSecret" className="block text-sm font-medium text-gray-700 mb-2">
+                Code Admin
+              </label>
+              <input
+                id="adminSecret"
+                type="password"
+                value={adminSecret}
+                onChange={(e) => {
+                  setAdminSecret(e.target.value);
+                  setAuthError('');
+                }}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                placeholder="Entrez le code secret"
+                autoFocus
+              />
+              {authError && (
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="mt-2 text-sm text-red-600"
+                >
+                  {authError}
+                </motion.p>
+              )}
+            </div>
+
+            <button
+              type="submit"
+              className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 rounded-lg transition-colors"
+            >
+              Se connecter
+            </button>
+          </form>
+
+          <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+            <p className="text-sm text-amber-800">
+              <strong>Note:</strong> Le code admin se trouve dans le fichier <code className="bg-amber-100 px-1 py-0.5 rounded">backend/.env</code>
+            </p>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       {/* Warning Banner */}
@@ -127,8 +227,14 @@ export function AdminDashboard() {
               </p>
             </div>
 
-            {/* Stats */}
+            {/* Stats and Logout */}
             <div className="flex items-center gap-6">
+              <button
+                onClick={handleLogout}
+                className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                Déconnexion
+              </button>
               <div className="text-center">
                 <div className="flex items-center gap-2 text-gray-500 text-sm mb-1">
                   <BarChart3Icon className="w-4 h-4" />

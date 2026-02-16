@@ -33,17 +33,21 @@ export class WishesController {
         videoUrl = uploadResult.url;
       }
 
-      // Create wish in Firestore
-      const wishId = await firestoreService.createWish({
+      // Create wish data object, excluding undefined values (Firestore doesn't accept undefined)
+      const wishData: any = {
         name,
         type,
-        message,
-        videoStoragePath,
-        videoUrl,
         approved: false,
         rejected: false,
-        createdAt: new Date(),
-      });
+      };
+
+      // Only add optional fields if they have values
+      if (message) wishData.message = message;
+      if (videoStoragePath) wishData.videoStoragePath = videoStoragePath;
+      if (videoUrl) wishData.videoUrl = videoUrl;
+
+      // Create wish in Firestore
+      const wishId = await firestoreService.createWish(wishData);
 
       const response: SubmitWishResponse = {
         success: true,
